@@ -1,0 +1,6 @@
+@SFS.Api_HostAddress = http://localhost:5137
+
+GET {{SFS.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
