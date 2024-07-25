@@ -23,7 +23,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Product>()
             .Property(p => p.Price)
-            .HasColumnType("decimal(18,2)");
+            .HasColumnType("decimal(18,0)");
 
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Product);
