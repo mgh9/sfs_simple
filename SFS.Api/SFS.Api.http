@@ -1,6 +1,26 @@
-@SFS.Api_HostAddress = http://localhost:5137
+@SFS.Api_HostAddress= https://localhost:7260
 
-GET {{SFS.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Add a Product
+POST {{SFS.Api_HostAddress}}/api/products
+Content-Type: application/json
 
-###
+{
+  "title": "Product 1",
+  "inventoryCount": 10,
+  "price": 19.99,
+  "discount": 10
+}
+
+### Increase Product Inventory
+PUT {{SFS.Api_HostAddress}}/api/products/1/increase-inventory/5
+Content-Type: application/json
+
+### Get Product by ID (with caching)
+GET {{SFS.Api_HostAddress}}/api/products/1
+
+### Buy a Product
+POST {{SFS.Api_HostAddress}}/api/products/1/buy?userId=1
+Content-Type: application/json
+
+### Get All Users
+GET {{SFS.Api_HostAddress}}/api/users
