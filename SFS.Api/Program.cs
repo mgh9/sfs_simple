@@ -19,6 +19,9 @@ builder.Services.AddSwaggerGen(x =>
 
 var app = builder.Build();
 
+// Ensure the database is created and migrated to the latest version
+DatabaseInitializer.Initialize(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
