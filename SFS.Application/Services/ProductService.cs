@@ -13,7 +13,7 @@ public class ProductService : BaseApplicationService, IProductService
     private readonly IUserRepository _userRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IMemoryCache _cache;
-
+        
     public ProductService(IProductRepository productRepository,
                             IUserRepository userRepository,
                             IOrderRepository orderRepository,
