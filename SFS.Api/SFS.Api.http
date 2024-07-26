@@ -19,7 +19,7 @@ Content-Type: application/json
 GET {{SFS.Api_HostAddress}}/api/products/1
 
 ### Buy a Product
-POST {{SFS.Api_HostAddress}}/api/products/1/buy?userId=1
+POST {{SFS.Api_HostAddress}}/api/products/1/buy?buyerId=1
 Content-Type: application/json
 
 ### Get All Users
