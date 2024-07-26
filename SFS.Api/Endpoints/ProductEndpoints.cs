@@ -15,44 +15,22 @@ internal static class ProductEndpoints
         [SwaggerOperation(Summary = "Add a Product", Description = "Add a `Product` to the inventory", Tags = ["Products"])]
         [SwaggerResponse(StatusCodes.Status201Created, "returns the created product Id", type: typeof(int))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid Product info")]
-        async (ProductDto product, IProductService productService , CancellationToken cancellationToken) =>
+        async (ProductDto product, IProductService productService, CancellationToken cancellationToken) =>
         {
-            try
-            {
-                var result = await productService.AddAsync(product,cancellationToken);
-                return Results.Created($"/{result}", product);
-            }
-            catch(ArgumentException ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            var result = await productService.AddAsync(product, cancellationToken);
+            return Results.Created($"/api/products/{result}", product);
         })
             .WithName("AddProduct")
             .WithOpenApi();
 
         group.MapPost("/{id}/increase-inventory/{amount}",
         [SwaggerOperation(Summary = "Increase Inventory", Description = "Increase a `product` in the inventory", Tags = ["Products"])]
-        [SwaggerResponse(StatusCodes.Status200OK)]
+        [SwaggerResponse(StatusCodes.Status200OK, "Product inventory increased")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
         async (int id, int amount, IProductService productService, CancellationToken cancellationToken) =>
         {
-            try
-            {
-                await productService.IncreaseInventoryAsync(id, amount, cancellationToken);
-                return Results.Ok();
-            }
-            catch(ArgumentException ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return Results.NotFound(ex.Message);
-            }
+            await productService.IncreaseInventoryAsync(id, amount, cancellationToken);
+            return Results.Ok();
         })
             .WithName("IncreaseInventory")
             .WithOpenApi();
@@ -62,22 +40,15 @@ internal static class ProductEndpoints
         [SwaggerOperation(Summary = "Get a product", Description = "Get a `product` by Id, considering its discount", Tags = ["Products"])]
         [SwaggerResponse(StatusCodes.Status200OK, "returns a `product`", type: typeof(ProductDto))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
-        async (int id, IProductService productService , CancellationToken cancellationToken) =>
+        async (int id, IProductService productService, CancellationToken cancellationToken) =>
         {
-            try
+            var theProduct = await productService.GetByIdAsync(id, cancellationToken);
+            if (theProduct is null)
             {
-                var theProduct = await productService.GetByIdAsync(id, cancellationToken);
-                if(theProduct is null)
-                {
-                    return Results.NotFound();
-                }
+                return Results.NotFound();
+            }
 
-                return Results.Ok(theProduct);
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            return Results.Ok(theProduct);
         })
             .WithName("GetProductById")
             .WithOpenApi();
@@ -87,29 +58,14 @@ internal static class ProductEndpoints
         // but in most cases it's recommended to use the CurrentUser Id in the back-end side and not passing from the client
         group.MapPost("/{id}/buy",
         [SwaggerOperation(Summary = "Buy a product", Description = "Buy a `product`, considering inventory stock", Tags = ["Products"])]
-        [SwaggerResponse(StatusCodes.Status200OK, "returns the `Order` Id", type: typeof(int))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Order successfully created", type: typeof(int))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Insufficient inventory")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User (Buyer) not found")]
         async (int id, int buyerId, IProductService productService, CancellationToken cancellationToken) =>
         {
-            try
-            {
-                var orderId = await productService.BuyAsync(id,buyerId, cancellationToken);
-                return Results.Ok(orderId);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return Results.NotFound(ex.Message);
-            }
-            catch(InvalidOperationException ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            var orderId = await productService.BuyAsync(id, buyerId, cancellationToken);
+            return Results.Created($"/api/orders/{orderId}", new { OrderId = orderId });
         })
             .WithName("BuyProduct")
             .WithOpenApi();

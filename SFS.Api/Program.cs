@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SFS.Api.Endpoints;
+using SFS.Api.Middlewares;
 using SFS.Application;
 using SFS.Domain.Mapping;
 using SFS.Persistence;
@@ -35,6 +36,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapProductEndpoints();
 app.MapUserEndpoints();

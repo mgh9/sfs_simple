@@ -71,12 +71,12 @@ public class ProductService : BaseApplicationService, IProductService
 
             theProduct = Mapper.Map<ProductDto>(theProductEntity);
 
+            var priceWithDiscount = CalculateDiscount(theProduct!.Price, theProduct.Discount);
+            theProduct.Price = priceWithDiscount;
+
             var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(1));
             _cache.Set(GetProductCacheKey(theProductEntity.Id), theProduct, cacheEntryOptions);
         }
-
-        var priceWithDiscount = CalculateDiscount(theProduct!.Price, theProduct.Discount);
-        theProduct.Price = priceWithDiscount;
 
         return theProduct;
     }
@@ -110,6 +110,7 @@ public class ProductService : BaseApplicationService, IProductService
 
     private static decimal CalculateDiscount(decimal price, double discount)
     {
-        return price * (1 - (decimal)(discount / 100));
+        var priceDiscountApplied = price * (1 - (decimal)(discount / 100));
+        return Math.Round(priceDiscountApplied);
     }
 }
