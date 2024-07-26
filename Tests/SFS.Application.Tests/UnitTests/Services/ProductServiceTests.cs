@@ -48,7 +48,7 @@ public class ProductServiceTests
     public async Task AddAsync_ShouldAddProductSuccessfully_WhenProductModelIsValid()
     {
         // Arrange
-        var model = new ProductDto { Title = "Product Test", Discount = 10, Price = 100, InventoryCount = 0 };
+        var model = new ProductDto { Id = 1, Title = "Product Test", Discount = 10, Price = 100, InventoryCount = 0 };
         var mockProduct = new Product
         {
             Id = 1,
@@ -62,16 +62,20 @@ public class ProductServiceTests
                 .Setup(mapper => mapper.Map<Product>(It.IsAny<ProductDto>()))
                 .Returns(mockProduct);
 
+        _mockMapper
+                .Setup(mapper => mapper.Map<ProductDto>(It.IsAny<Product>()))
+                .Returns(model);
+
         _mockProductRepository
                 .Setup(repo => repo.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
         // Act
-        var theCreatedProductId = await _productService.AddAsync(model, default);
+        var theCreatedProduct = await _productService.AddAsync(model, default);
 
         // Assert
-        Assert.Equal(theCreatedProductId , mockProduct.Id);
-        Assert.True(theCreatedProductId > 0);
+        Assert.Equal(theCreatedProduct.Id , mockProduct.Id);
+        Assert.True(theCreatedProduct.Id > 0);
         _mockMapper.Verify(m => m.Map<Product>(It.IsAny<ProductDto>()), Times.Once);
         _mockProductRepository.Verify(pr => pr.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
         _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
