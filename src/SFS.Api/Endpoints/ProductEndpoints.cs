@@ -13,12 +13,12 @@ internal static class ProductEndpoints
         // add a product
         group.MapPost("/",
         [SwaggerOperation(Summary = "Add a Product", Description = "Add a `Product` to the inventory", Tags = ["Products"])]
-        [SwaggerResponse(StatusCodes.Status201Created, "returns the created product Id", type: typeof(int))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Product added to the inventory, and returns the created product", type: typeof(ProductDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid Product info")]
         async (ProductDto product, IProductService productService, CancellationToken cancellationToken) =>
         {
-            var result = await productService.AddAsync(product, cancellationToken);
-            return Results.Created($"/api/products/{result}", product);
+            var createdProduct = await productService.AddAsync(product, cancellationToken);
+            return Results.Created($"/api/products/{createdProduct.Id}", createdProduct);
         })
             .WithName("AddProduct")
             .WithOpenApi();
@@ -58,17 +58,16 @@ internal static class ProductEndpoints
         // but in most cases it's recommended to use the CurrentUser Id in the back-end side and not passing from the client
         group.MapPost("/{id}/buy",
         [SwaggerOperation(Summary = "Buy a product", Description = "Buy a `product`, considering inventory stock", Tags = ["Products"])]
-        [SwaggerResponse(StatusCodes.Status201Created, "Order successfully created", type: typeof(int))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Order successfully created, returns the created Order", type: typeof(OrderDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Insufficient inventory")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User (Buyer) not found")]
         async (int id, int buyerId, IProductService productService, CancellationToken cancellationToken) =>
         {
-            var orderId = await productService.BuyAsync(id, buyerId, cancellationToken);
-            return Results.Created($"/api/orders/{orderId}", new { OrderId = orderId });
+            var createdOrder= await productService.BuyAsync(id, buyerId, cancellationToken);
+            return Results.Created($"/api/orders/{createdOrder.Id}", createdOrder);
         })
             .WithName("BuyProduct")
             .WithOpenApi();
     }
 }
-

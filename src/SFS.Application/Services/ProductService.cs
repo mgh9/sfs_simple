@@ -29,7 +29,7 @@ public class ProductService : BaseApplicationService, IProductService
         _logger = logger;
     }
 
-    public async Task<int> AddAsync(ProductDto model, CancellationToken cancellationToken)
+    public async Task<ProductDto> AddAsync(ProductDto model, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(model.Title) || model.Title.Length > 40)
         {
@@ -47,7 +47,7 @@ public class ProductService : BaseApplicationService, IProductService
 
         _logger.LogInformation("Product successfully added in the Inventory");
 
-        return product.Id;
+        return Mapper.Map<ProductDto>(product);
     }
 
     private async Task<bool> IsTitleAlreadyExistsAsync(string title, CancellationToken cancellationToken)
@@ -67,7 +67,7 @@ public class ProductService : BaseApplicationService, IProductService
 
         product.InventoryCount += amount;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
-        
+
         _logger.LogInformation("The Product (id: `{id}`) inventory increased by `{amount}`", id, amount);
     }
 
@@ -93,14 +93,14 @@ public class ProductService : BaseApplicationService, IProductService
         return theProduct;
     }
 
-    public async Task<int> BuyAsync(int id, int buyerId, CancellationToken cancellationToken)
+    public async Task<OrderDto> BuyAsync(int id, int buyerId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Buying the Product (id: `{id}`) by user Id: `{userId}`", id, buyerId);
 
         var theProduct = await _productRepository.GetAsync(id, cancellationToken)
                         ?? throw new KeyNotFoundException("Product not found");
         if (theProduct.InventoryCount <= 0)
-        {            
+        {
             throw new InvalidOperationException("Insufficient inventory.");
         }
 
@@ -109,12 +109,12 @@ public class ProductService : BaseApplicationService, IProductService
 
         theProduct.InventoryCount--;
 
-        var order = new Order { Product = theProduct, Buyer = user };
+        var order = new Order { Product = theProduct, Buyer = user, Price = theProduct.Price, Discount = theProduct.Discount };
 
         await _orderRepository.AddAsync(order, cancellationToken);
         await UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return order.Id;
+        return Mapper.Map<OrderDto>(order);
     }
 
     private static string GetProductCacheKey(int productId)

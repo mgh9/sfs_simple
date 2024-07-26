@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
             .HasOne(o => o.Product);
 
         modelBuilder.Entity<Order>()
+            .Property(p => p.Price)
+            .HasColumnType("decimal(18,0)");
+
+        modelBuilder.Entity<Order>()
             .HasOne(o => o.Buyer)
             .WithMany(u => u.Orders);
 

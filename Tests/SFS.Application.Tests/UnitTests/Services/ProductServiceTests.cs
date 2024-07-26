@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SFS.Application.Abstractions.Repositories;
 using SFS.Application.Services;
@@ -16,6 +17,7 @@ public class ProductServiceTests
     private readonly Mock<IMemoryCache> _mockCache;
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+    private readonly Mock<ILogger<ProductService>> _mockLogger;
 
     private readonly ProductService _productService;
 
@@ -27,6 +29,7 @@ public class ProductServiceTests
         _mockOrderRepository = new Mock<IOrderRepository>();
         _mockCache = new Mock<IMemoryCache>();
         _mockUnitOfWork = new Mock<IUnitOfWork>();
+        _mockLogger = new Mock<ILogger<ProductService>>();
 
         _mockUnitOfWork
              .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
@@ -37,7 +40,8 @@ public class ProductServiceTests
                                                 , _mockOrderRepository.Object
                                                 , _mockUnitOfWork.Object
                                                 , _mockMapper.Object
-                                                , _mockCache.Object);
+                                                , _mockCache.Object
+                                                , _mockLogger.Object);
     }
 
     [Fact]
