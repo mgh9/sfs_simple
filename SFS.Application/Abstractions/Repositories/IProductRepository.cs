@@ -4,5 +4,5 @@ namespace SFS.Application.Abstractions.Repositories;
 
 public interface IProductRepository : IRepository<Product>
 {
-    Task<bool> IsProductTitleAlreadyExistAsync(string title, CancellationToken cancellationToken);
+    Task<Product?> GetByTitleAsync(string title, CancellationToken cancellationToken);
 }

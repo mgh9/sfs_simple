@@ -11,8 +11,8 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
     {
     }
 
-    public async Task<bool> IsProductTitleAlreadyExistAsync(string title, CancellationToken cancellationToken)
+    public async Task<Product?> GetByTitleAsync(string title, CancellationToken cancellationToken)
     {
-        return await DbSet.CountAsync(x => x.Title == title, cancellationToken: cancellationToken) > 0;
+        return await DbSet.SingleOrDefaultAsync(x => x.Title == title, cancellationToken: cancellationToken);
     }
 }

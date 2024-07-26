@@ -33,7 +33,7 @@ public class ProductService : BaseApplicationService, IProductService
             throw new ArgumentException("Product title must be less than 40 characters");
         }
 
-        if (await _productRepository.IsProductTitleAlreadyExistAsync(model.Title, cancellationToken))
+        if (await IsTitleAlreadyExistsAsync(model.Title, cancellationToken))
         {
             throw new ArgumentException("Product title must be unique.");
         }
@@ -43,6 +43,11 @@ public class ProductService : BaseApplicationService, IProductService
         await UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return product.Id;
+    }
+
+    private async Task<bool> IsTitleAlreadyExistsAsync(string title, CancellationToken cancellationToken)
+    {
+        return await _productRepository.GetByTitleAsync(title, cancellationToken) is not null;
     }
 
     public async Task IncreaseInventoryAsync(int id, int amount, CancellationToken cancellationToken)
