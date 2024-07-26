@@ -23,7 +23,7 @@ internal static class ProductEndpoints
             .WithName("AddProduct")
             .WithOpenApi();
 
-        group.MapPost("/{id}/increase-inventory/{amount}",
+        group.MapPut("/{id}/increase-inventory/{amount}",
         [SwaggerOperation(Summary = "Increase Inventory", Description = "Increase a `product` in the inventory", Tags = ["Products"])]
         [SwaggerResponse(StatusCodes.Status200OK, "Product inventory increased")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
