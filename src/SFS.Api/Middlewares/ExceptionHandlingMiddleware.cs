@@ -21,12 +21,11 @@ internal class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception has occurred.");
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex, _logger);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static Task HandleExceptionAsync(HttpContext context, Exception exception, ILogger<ExceptionHandlingMiddleware> _logger)
     {
         context.Response.ContentType = "application/json";
 
@@ -35,11 +34,16 @@ internal class ExceptionHandlingMiddleware
             ArgumentException => StatusCodes.Status404NotFound,
             KeyNotFoundException => StatusCodes.Status404NotFound,
             InvalidOperationException => StatusCodes.Status400BadRequest,
-            
+
             _ => StatusCodes.Status500InternalServerError
         };
 
         context.Response.StatusCode = statusCode;
+
+        if (context.Response.StatusCode == StatusCodes.Status500InternalServerError)
+        {
+            _logger.LogError(exception, "An unhandled exception has occurred.");
+        }
 
         var result = JsonSerializer.Serialize(new { error = exception.Message });
         return context.Response.WriteAsync(result);

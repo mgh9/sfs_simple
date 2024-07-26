@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using SFS.Application.Abstractions.Repositories;
 using SFS.Application.Abstractions.Services;
 using SFS.Domain.Dtos;
@@ -13,17 +14,19 @@ public class ProductService : BaseApplicationService, IProductService
     private readonly IUserRepository _userRepository;
     private readonly IOrderRepository _orderRepository;
     private readonly IMemoryCache _cache;
-        
+    private readonly ILogger<ProductService> _logger;
+
     public ProductService(IProductRepository productRepository,
                             IUserRepository userRepository,
                             IOrderRepository orderRepository,
-                            IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache cache)
+                            IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache cache, ILogger<ProductService> logger)
         : base(unitOfWork, mapper)
     {
         _productRepository = productRepository;
         _userRepository = userRepository;
         _orderRepository = orderRepository;
         _cache = cache;
+        _logger = logger;
     }
 
     public async Task<int> AddAsync(ProductDto model, CancellationToken cancellationToken)
@@ -41,6 +44,8 @@ public class ProductService : BaseApplicationService, IProductService
         var product = Mapper.Map<Product>(model);
         await _productRepository.AddAsync(product, cancellationToken);
         await UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Product successfully added in the Inventory");
 
         return product.Id;
     }
@@ -62,6 +67,8 @@ public class ProductService : BaseApplicationService, IProductService
 
         product.InventoryCount += amount;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
+        
+        _logger.LogInformation("The Product (id: `{id}`) inventory increased by `{amount}`", id, amount);
     }
 
     public async Task<ProductDto?> GetByIdAsync(int id, CancellationToken cancellationToken)
@@ -88,10 +95,12 @@ public class ProductService : BaseApplicationService, IProductService
 
     public async Task<int> BuyAsync(int id, int buyerId, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Buying the Product (id: `{id}`) by user Id: `{userId}`", id, buyerId);
+
         var theProduct = await _productRepository.GetAsync(id, cancellationToken)
                         ?? throw new KeyNotFoundException("Product not found");
         if (theProduct.InventoryCount <= 0)
-        {
+        {            
             throw new InvalidOperationException("Insufficient inventory.");
         }
 
