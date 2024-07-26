@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using SFS.Api.Endpoints;
 using SFS.Api.Middlewares;
 using SFS.Application;
@@ -8,7 +7,6 @@ using SFS.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddMemoryCache();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
