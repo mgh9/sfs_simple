@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFS.Application", "SFS.Appl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFS.Persistence", "SFS.Persistence\SFS.Persistence.csproj", "{F059838E-665B-45F0-B713-5D6A302ECC9D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C2573F46-DE5E-44E5-B02E-C92C46DFB7FF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFS.Application.Tests", "Tests\SFS.Application.Tests\SFS.Application.Tests.csproj", "{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,10 @@ Global
 		{F059838E-665B-45F0-B713-5D6A302ECC9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F059838E-665B-45F0-B713-5D6A302ECC9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F059838E-665B-45F0-B713-5D6A302ECC9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +54,7 @@ Global
 		{9D22BAD3-358A-4B10-8AF2-FD07B2D8CB78} = {0ADCCF8C-CE29-4DF9-A683-C24C3B162768}
 		{23D7068B-DFB2-4155-AFEF-140DEBF87FA7} = {1D7A1171-9B18-4E83-881C-07172179B19D}
 		{F059838E-665B-45F0-B713-5D6A302ECC9D} = {1D7A1171-9B18-4E83-881C-07172179B19D}
+		{1C6DB532-1FFB-4C5A-B437-64F7ADF9B1C0} = {C2573F46-DE5E-44E5-B02E-C92C46DFB7FF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3A3EE32C-EAF4-4AD2-9B17-BE00F1157132}
