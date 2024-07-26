@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SFS.Application\SFS.Application.csproj" />
+    <ProjectReference Include="..\..\src\SFS.Application\SFS.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using SFS.Application.Abstractions.Repositories;
-using SFS.Application.Abstractions.Services;
 using SFS.Application.Services;
 using SFS.Domain.Dtos;
 using SFS.Domain.Models;
@@ -18,7 +17,7 @@ public class ProductServiceTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
 
-    private readonly IProductService _productService;
+    private readonly ProductService _productService;
 
     public ProductServiceTests()
     {
