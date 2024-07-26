@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using SFS.Data;
-using SFS.Domain.Models;
+﻿using SFS.Application.Abstractions.Services;
+using SFS.Domain.Dtos;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SFS.Api.Endpoints;
@@ -10,113 +8,111 @@ internal static class ProductEndpoints
 {
     internal static void MapProductEndpoints(this WebApplication app)
     {
+        var group = app.MapGroup("/api/products");
+
         // add a product
-        app.MapPost("/api/products", async (Product product, AppDbContext context, CancellationToken cancellationToken) =>
+        group.MapPost("/",
+        [SwaggerOperation(Summary = "Add a Product", Description = "Add a `Product` to the inventory", Tags = ["Products"])]
+        [SwaggerResponse(StatusCodes.Status201Created, "returns the created product Id", type: typeof(int))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid Product info")]
+        async (ProductDto product, IProductService productService , CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(product.Title) || product.Title.Length > 40)
+            try
             {
-                return Results.BadRequest("Product title must be less than 40 characters");
+                var result = await productService.AddAsync(product,cancellationToken);
+                return Results.Created($"/{result}", product);
             }
-
-            if (await context.Products.CountAsync(x => x.Title == product.Title, cancellationToken: cancellationToken) > 0)
+            catch(ArgumentException ex)
             {
-                return Results.BadRequest("Product title must be unique.");
+                return Results.BadRequest(ex.Message);
             }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        })
+            .WithName("AddProduct")
+            .WithOpenApi();
 
-            await context.Products.AddAsync(product, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-
-            return Results.Ok(product);
-        }).WithName("AddProduct")
-        .WithTags("Products")
-        .WithMetadata(new SwaggerOperationAttribute("Add a product", "Add a product to the inventory"))
-        .WithOpenApi();
-
-        app.MapPost("/api/products/{id}/increase-inventory/{amount}", async (int id, int amount, AppDbContext context, CancellationToken cancellationToken) =>
+        group.MapPost("/{id}/increase-inventory/{amount}",
+        [SwaggerOperation(Summary = "Increase Inventory", Description = "Increase a `product` in the inventory", Tags = ["Products"])]
+        [SwaggerResponse(StatusCodes.Status200OK)]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
+        async (int id, int amount, IProductService productService, CancellationToken cancellationToken) =>
         {
-            var theProduct = await context.Products.FindAsync([id], cancellationToken: cancellationToken);
-            if (theProduct is null)
+            try
             {
-                return Results.NotFound();
+                await productService.IncreaseInventoryAsync(id, amount, cancellationToken);
+                return Results.Ok();
             }
-
-            theProduct.InventoryCount += amount;
-            await context.SaveChangesAsync(cancellationToken);
-
-            return Results.Ok(theProduct);
-        }).WithName("IncreaseInventory")
-        .WithTags("Products")
-        .WithMetadata(new SwaggerOperationAttribute("Increase inventory", "Increase a product in the inventory"))
-        .WithOpenApi();
-
-        // get a product considering discount
-        app.MapGet("/api/products/{id}", async (int id, AppDbContext context, IMemoryCache cache, CancellationToken cancellationToken) =>
-        {
-            if (!cache.TryGetValue(GetProductCacheKey(id), out Product? theProduct))
+            catch(ArgumentException ex)
             {
-                theProduct = await context.Products.FindAsync([id], cancellationToken: cancellationToken);
-                if (theProduct is null)
+                return Results.BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+        })
+            .WithName("IncreaseInventory")
+            .WithOpenApi();
+
+        // get a product by Id, considering discount
+        group.MapGet("/{id}",
+        [SwaggerOperation(Summary = "Get a product", Description = "Get a `product` by Id, considering its discount", Tags = ["Products"])]
+        [SwaggerResponse(StatusCodes.Status200OK, "returns a `product`", type: typeof(ProductDto))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
+        async (int id, IProductService productService , CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var theProduct = await productService.GetByIdAsync(id, cancellationToken);
+                if(theProduct is null)
                 {
                     return Results.NotFound();
                 }
 
-                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(1));
-                cache.Set(GetProductCacheKey(theProduct.Id), theProduct, cacheEntryOptions);
+                return Results.Ok(theProduct);
             }
-
-            var priceWithDiscount = CalculateDiscount(theProduct!.Price, theProduct.Discount);
-            theProduct.Price = priceWithDiscount;
-
-            return Results.Ok(theProduct);
-        }).WithName("GetProductById")
-        .WithTags("Products")
-        .WithMetadata(new SwaggerOperationAttribute("Get a product", "Get a product by Id, considering its discount"))
-        .WithOpenApi();
+            catch (Exception ex)
+            {
+                throw;
+            }
+        })
+            .WithName("GetProductById")
+            .WithOpenApi();
 
         // buy a product
         // as far as we don't have an Auth system (and CurrentUser), so I'm passing `buyerUserId` as a parameter to this endpoint
         // but in most cases it's recommended to use the CurrentUser Id in the back-end side and not passing from the client
-        app.MapPost("/api/products/{id}/buy", async (int id, int buyerUserId, AppDbContext context, CancellationToken cancellationToken) =>
+        group.MapPost("/{id}/buy",
+        [SwaggerOperation(Summary = "Buy a product", Description = "Buy a `product`, considering inventory stock", Tags = ["Products"])]
+        [SwaggerResponse(StatusCodes.Status200OK, "returns the `Order` Id", type: typeof(int))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Insufficient inventory")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Product not found")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User (Buyer) not found")]
+        async (int id, int buyerId, IProductService productService, CancellationToken cancellationToken) =>
         {
-            var theProduct = await context.Products.FindAsync([id], cancellationToken: cancellationToken);
-            if (theProduct is null)
+            try
             {
-                return Results.NotFound("Product not found");
+                var orderId = await productService.BuyAsync(id,buyerId, cancellationToken);
+                return Results.Ok(orderId);
             }
-
-            if (theProduct.InventoryCount <= 0)
+            catch (KeyNotFoundException ex)
             {
-                return Results.BadRequest("Insufficient inventory.");
+                return Results.NotFound(ex.Message);
             }
-
-            // we assume this is the current user whose not coming from the client-side
-            var theUser = await context.Users.FindAsync([buyerUserId], cancellationToken: cancellationToken);
-            if (theUser is null)
+            catch(InvalidOperationException ex)
             {
-                return Results.NotFound("User (Buyer) not found");
+                return Results.BadRequest(ex.Message);
             }
-
-            theProduct.InventoryCount--;
-
-            var anOrder = new Order { Product = theProduct, Buyer = theUser };
-            await context.Orders.AddAsync(anOrder, cancellationToken: cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-
-            return Results.Ok(anOrder);
-        }).WithName("BuyProduct")
-        .WithTags("Products")
-        .WithMetadata(new SwaggerOperationAttribute("Buy a product", "Buy a product, considering inventory stock"))
-        .WithOpenApi();
-    }
-
-    static string GetProductCacheKey(int productId)
-    {
-        return $"products:{productId}";
-    }
-
-    static decimal CalculateDiscount(decimal price, double discount)
-    {
-        return price * (1 - (decimal)(discount / 100));
+            catch (Exception ex)
+            {
+                throw;
+            }
+        })
+            .WithName("BuyProduct")
+            .WithOpenApi();
     }
 }
 
